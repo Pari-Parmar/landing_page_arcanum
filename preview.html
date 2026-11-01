@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARCANUM — Intelligence for the Learning Journey</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet" />
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="./landing.css" />
+  
+  <!-- React 18, ReactDOM, and Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useId, createContext, useContext } = React;
+
+    // --- Lucide Icon Helpers (Inline SVGs) ---
+    const Icon = ({ size = 16, children, className = '', ...props }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+        {children}
+      </svg>
+    );
+
+    const ArrowRight = (p) => <Icon {...p}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></Icon>;
+    const Play = (p) => <Icon {...p}><polygon points="6 3 20 12 6 21 6 3"/></Icon>;
+    const Sparkles = (p) => <Icon {...p}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></Icon>;
+    const Brain = (p) => <Icon {...p}><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M12 5v14"/></Icon>;
+    const Languages = (p) => <Icon {...p}><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></Icon>;
+    const Mic2 = (p) => <Icon {...p}><path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98L16 12"/><circle cx="17" cy="7" r="5"/></Icon>;
+    const Network = (p) => <Icon {...p}><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></Icon>;
+    const BarChart3 = (p) => <Icon {...p}><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></Icon>;
+    const ChevronDown = (p) => <Icon {...p}><path d="m6 9 6 6 6-6"/></Icon>;
+    const Menu = (p) => <Icon {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></Icon>;
+    const X = (p) => <Icon {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></Icon>;
+    const Shield = (p) => <Icon {...p}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></Icon>;
+    const FileText = (p) => <Icon {...p}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></Icon>;
+    const Sun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></Icon>;
+    const Moon = (p) => <Icon {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></Icon>;
+    const Mail = (p) => <Icon {...p}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></Icon>;
+    const CheckCircle2 = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></Icon>;
+    const Lock = (p) => <Icon {...p}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Icon>;
+    const Eye = (p) => <Icon {...p}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></Icon>;
+    const EyeOff = (p) => <Icon {...p}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></Icon>;
+    const GraduationCap = (p) => <Icon {...p}><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></Icon>;
+    const Building2 = (p) => <Icon {...p}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></Icon>;
+    const ArrowLeft = (p) => <Icon {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></Icon>;
+
+    // --- App Context ---
+    const AppContext = createContext({
+      route: 'landing',
+      setRoute: () => {},
+      theme: 'dark',
+      toggleTheme: () => {},
+    });
+
+    const AppProvider = ({ children }) => {
+      const [route, setRoute] = useState('landing');
+      const [theme, setTheme] = useState(() => {
+        try {
+          const s = localStorage.getItem('arcanum-theme');
+          if (s === 'light' || s === 'dark') return s;
+        } catch(e) {}
+        return 'dark';
+      });
+
+      useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        try { localStorage.setItem('arcanum-theme', theme); } catch(e) {}
+      }, [theme]);
+
+      const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+
+      return (
+        <AppContext.Provider value={{ route, setRoute, theme, toggleTheme }}>
+          {children}
+        </AppContext.Provider>
+      );
+    };
+
+    const useApp = () => useContext(AppContext);
+
+    // --- Sound Synth ---
+    function playLampSound(isOn) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = isOn ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(isOn ? 1900 : 1300, now);
+        osc.frequency.exponentialRampToValueAtTime(isOn ? 480 : 320, now + 0.035);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.045);
+        setTimeout(() => ctx.close().catch(() => {}), 100);
+      } catch(e) {}
+    }
+
+    // --- Arcanum Logo ---
+    const ArcanumLogo = ({ variant = 'full', size = 32, interactive = true }) => {
+      const { theme } = useApp();
+      const [isLampOn, setIsLampOn] = useState(true);
+      const [isHovered, setIsHovered] = useState(false);
+      const isDark = theme === 'dark';
+
+      const handleClick = () => {
+        if (!interactive) return;
+        const next = !isLampOn;
+        setIsLampOn(next);
+        playLampSound(next);
+      };
+
+      return (
+        <div
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            cursor: interactive ? 'pointer' : 'default',
+            userSelect: 'none'
+          }}
+          title={interactive ? (isLampOn ? 'Click lamp to switch OFF' : 'Click lamp to switch ON') : 'ARCANUM'}
+        >
+          {/* SVG Lamp & Books Icon */}
+          <svg width={size} height={size * 1.2} viewBox="0 0 110 136" fill="none" style={{ overflow: 'visible', transition: 'transform 0.2s ease', transform: isHovered ? 'scale(1.08)' : 'scale(1)' }}>
+            <defs>
+              <linearGradient id="logo-beam" x1="88" y1="38" x2="55" y2="135" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#fef08a" stopOpacity={isLampOn ? (isHovered ? 0.95 : 0.8) : 0.02} />
+                <stop offset="40%" stopColor="#fbbf24" stopOpacity={isLampOn ? 0.45 : 0.01} />
+                <stop offset="100%" stopColor="#ea580c" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* Illumination Beam */}
+            <polygon points="88,38 18,132 102,132" fill="url(#logo-beam)" />
+            {/* Lamp Base & Arch */}
+            <path d="M 55 10 C 35 10, 20 25, 20 50 L 20 80 C 20 85, 24 90, 30 90 L 80 90 C 86 90, 90 85, 90 80 L 90 50 C 90 25, 75 10, 55 10 Z" fill={isDark ? '#e3a8b6' : '#5a3842'} opacity="0.85" />
+            {/* Lamp Head */}
+            <circle cx="88" cy="38" r={isLampOn ? 7 : 5} fill={isLampOn ? (isDark ? '#fffbeb' : '#fef3c7') : '#71717a'} />
+            {isLampOn && <circle cx="88" cy="38" r="14" fill="#fbbf24" opacity="0.35" style={{ filter: 'blur(3px)' }} />}
+            {/* Books Stack */}
+            <rect x="22" y="96" width="66" height="10" rx="3" fill={isDark ? '#f5d0c5' : '#885864'} />
+            <rect x="16" y="110" width="78" height="12" rx="3" fill={isDark ? '#ffd1dc' : '#5a3842'} />
+          </svg>
+          {variant !== 'mark' && (
+            <span style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontWeight: 700,
+              fontSize: `${Math.round(size * 0.72)}px`,
+              letterSpacing: '0.12em',
+              color: isDark ? '#ffffff' : '#0a0a0b',
+              transition: 'color 0.2s ease'
+            }}>
+              ARCANUM
+            </span>
+          )}
+        </div>
+      );
+    };
+
+    // --- Data ---
+    const platform = [
+      { n: '01', title: 'Listen', text: 'ARCANUM follows the lecture as it happens, capturing academic speech and structure in real time.', icon: <Mic2 /> },
+      { n: '02', title: 'Understand', text: 'Context, terminology and course material are connected so difficult ideas become easier to grasp.', icon: <Brain /> },
+      { n: '03', title: 'Adapt', text: "Explanations can shift with language, fluency, pace and the learner's current level of understanding.", icon: <Languages /> },
+      { n: '04', title: 'Progress', text: 'Learning signals turn into revision paths, insights and the next useful action.', icon: <BarChart3 /> },
+    ];
+
+    const reasons = [
+      ['01', 'One continuous learning layer', 'ARCANUM connects lecture, context, questions, revision and progress instead of scattering them across disconnected tools.'],
+      ['02', 'Built around understanding', 'The goal is not more information. It is a clearer path from hearing something to actually understanding it.'],
+      ['03', 'Designed for real students', 'Language, terminology, pace and confidence are treated as part of the learning experience, not edge cases.'],
+    ];
+
+    const teamMembers = [
+      {
+        name: 'Hetvi Sheth',
+        role: 'Backend Architect & Speech Engineer',
+        focus: 'Real-time Whisper ASR with VAD streaming, Supabase database architecture, live session syncing, and AI backend fallback services.',
+        bioParagraphs: [
+          "At ARCANUM, learning should happen at the speed of thought. My mission has been building the low-latency speech backbone and database pipeline that listens, decodes, and reasons in real time without cognitive lag.",
+          "From streaming Whisper ASR paired with Voice Activity Detection (VAD) to orchestrating synchronized Supabase DB states, I focus on turning complex distributed backend engineering into an invisible, effortless experience for every student."
+        ],
+        photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        domain: 'Backend & Real-Time ASR',
+        tags: ['Whisper ASR & VAD', 'Supabase DB', 'Backend APIs'],
+        email: 'hetvi@arcanum.ai',
+      },
+      {
+        name: 'Sneha Patel',
+        role: 'Full Stack & AI Systems Engineer',
+        focus: 'Multi-agent AI orchestration, Google OAuth authentication pipelines, Sarvam & Groq Whisper transcription, and interactive classroom modules.',
+        bioParagraphs: [
+          "Intelligence in education is about contextual empathy. I focus on developing multi-agent orchestration pipelines that adapt lecture material to any student's native vernacular, pace, and cognitive style.",
+          "By integrating dual transcription fallbacks with Groq and Sarvam alongside robust Google OAuth flows, we ensure the classroom remains completely inclusive, deeply personalized, and always reliable."
+        ],
+        photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        domain: 'AI Systems & Auth',
+        tags: ['Multi-Agent AI', 'Google OAuth', 'Sarvam & Groq'],
+        email: 'sneha@arcanum.ai',
+      },
+      {
+        name: 'Parisha',
+        role: 'Frontend Lead & UI/UX Designer',
+        focus: 'Warm editorial design system, responsive dashboards, command palette UX, skeleton loading states, and dynamic onboarding flows.',
+        bioParagraphs: [
+          "Design is not just how something looks, but how clearly it communicates. My objective has been creating a warm, editorial design language that removes cognitive clutter and makes academic environments feel calm and inspiring.",
+          "Every component—from fluid command palettes and responsive podium layouts to tactile micro-interactions—is crafted to honor the student's focus and elevate understanding above information overload."
+        ],
+        photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        domain: 'UI/UX & Frontend',
+        tags: ['UI/UX Design', 'Design Systems', 'Responsive Web'],
+        email: 'parisha@arcanum.ai',
+      },
+      {
+        name: 'Priya Bhatt',
+        role: 'QA & Testing Lead',
+        focus: 'Comprehensive end-to-end testing, cross-browser validation, bug verification, and system reliability benchmarks.',
+        bioParagraphs: [
+          "Reliability is the foundation of trust in education. When students and faculty depend on real-time classroom tooling, there is zero tolerance for dropped audio or failing synchronization.",
+          "I lead our end-to-end testing matrix, stress-testing live ASR streaming across devices, edge latencies, and diverse network conditions to ensure every lecture runs with rock-solid consistency."
+        ],
+        photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+        domain: 'Quality Assurance',
+        tags: ['Software Testing', 'E2E Testing', 'System Reliability'],
+        email: 'priya@arcanum.ai',
+      },
+      {
+        name: 'Isha Rajput',
+        role: 'Technical Documentation Lead',
+        focus: 'System architecture documentation, technical reports, platform specifications, and comprehensive user guides.',
+        bioParagraphs: [
+          "Complex systems deserve crystal-clear articulation. Great engineering is only as impactful as the ability for developers, educators, and students to understand and navigate its foundations.",
+          "I document ARCANUM's multi-agent architectural layers, API specifications, and deployment runbooks, turning cutting-edge speech and pedagogical models into accessible, transparent knowledge."
+        ],
+        photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+        domain: 'Documentation',
+        tags: ['Technical Writing', 'Architecture Docs', 'System Specs'],
+        email: 'isha@arcanum.ai',
+      }
+    ];
+
+    // --- Main Landing Page Component ---
+    const LandingPage = () => {
+      const { setRoute, theme, toggleTheme } = useApp();
+      const [scrolled, setScrolled] = useState(false);
+      const [mobileOpen, setMobileOpen] = useState(false);
+      const [active, setActive] = useState(0);
+      const [activeSection, setActiveSection] = useState('');
+      const [selectedMember, setSelectedMember] = useState(null);
+      const [earlyAccessOpen, setEarlyAccessOpen] = useState(false);
+      const [earlyEmail, setEarlyEmail] = useState('');
+      const [earlyRole, setEarlyRole] = useState('student');
+      const [earlySubmitted, setEarlySubmitted] = useState(false);
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            setSelectedMember(null);
+            setEarlyAccessOpen(false);
+          }
+        };
+        if (selectedMember || earlyAccessOpen) {
+          document.body.style.overflow = 'hidden';
+          window.addEventListener('keydown', handleKeyDown);
+        } else {
+          document.body.style.overflow = '';
+        }
+        return () => {
+          document.body.style.overflow = '';
+          window.removeEventListener('keydown', handleKeyDown);
+        };
+      }, [selectedMember, earlyAccessOpen]);
+
+      useEffect(() => {
+        const sections = ['problem', 'why', 'platform', 'vision', 'team', 'partner'];
+        const onScroll = () => {
+          setScrolled(window.scrollY > 20);
+          const scrollPos = window.scrollY + 180;
+          let current = '';
+          for (const id of sections) {
+            const el = document.getElementById(id);
+            if (el && el.offsetTop <= scrollPos) current = id;
+          }
+          setActiveSection(current);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+        const timer = setInterval(() => setActive(v => (v + 1) % platform.length), 2400);
+        return () => {
+          window.removeEventListener('scroll', onScroll);
+          clearInterval(timer);
+        };
+      }, []);
+
+      const go = (id) => {
+        setMobileOpen(false);
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      };
+
+      const openEarlyAccess = () => {
+        setMobileOpen(false);
+        setEarlyAccessOpen(true);
+      };
+
+      const handleEarlyAccessSubmit = (e) => {
+        e.preventDefault();
+        if (!earlyEmail.trim()) return;
+        setEarlySubmitted(true);
+      };
+
+      const enter = () => {
+        openEarlyAccess();
+      };
+
+      return (
+        <div className="arc2-page">
+          <div className="arc2-global-glow" aria-hidden="true" />
+          <div className="arc2-stars" aria-hidden="true">
+            {Array.from({ length: 32 }).map((_, i) => <i key={i} style={{ '--i': i }} />)}
+          </div>
+
+          {/* Navigation Bar */}
+          <header className={`arc2-nav ${scrolled ? 'arc2-nav-scrolled' : ''}`}>
+            <div className="arc2-nav-inner">
+              <button className="arc2-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <ArcanumLogo variant="full" size={24} interactive />
+              </button>
+              <nav className="arc2-links">
+                <button className={activeSection === 'problem' ? 'arc2-link-active' : ''} onClick={() => go('problem')}>Problem</button>
+                <button className={activeSection === 'why' ? 'arc2-link-active' : ''} onClick={() => go('why')}>Why Us</button>
+                <button className={activeSection === 'platform' ? 'arc2-link-active' : ''} onClick={() => go('platform')}>Platform</button>
+                <button className={activeSection === 'demo-video' ? 'arc2-link-active' : ''} onClick={() => go('demo-video')}>Demo</button>
+                <button className={activeSection === 'vision' ? 'arc2-link-active' : ''} onClick={() => go('vision')}>Vision</button>
+                <button className={activeSection === 'team' ? 'arc2-link-active' : ''} onClick={() => go('team')}>Team</button>
+                <button className={activeSection === 'partner' ? 'arc2-link-active' : ''} onClick={() => go('partner')}>Partner</button>
+              </nav>
+              <div className="arc2-nav-actions">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="arc2-theme-toggle"
+                  title={theme === 'dark' ? "Switch to Light Theme" : "Switch to Obsidian Dark"}
+                  style={{
+                    background: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                    border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.08)'}`,
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: theme === 'dark' ? '#f4f4f5' : '#18181b',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoute('login')}
+                  className="arc2-nav-signin-btn interactive-lift interactive-tap"
+                  title="Sign In to Student Portal"
+                >
+                  <span>Sign In</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+              <button className="arc2-mobile-button" onClick={() => setMobileOpen(v => !v)}>
+                {mobileOpen ? <X /> : <Menu />}
+              </button>
+            </div>
+            {mobileOpen && (
+              <div className="arc2-mobile-menu">
+                <button onClick={() => go('problem')}>Problem</button>
+                <button onClick={() => go('why')}>Why Arcanum</button>
+                <button onClick={() => go('platform')}>Platform</button>
+                <button onClick={() => go('demo-video')}>Demo Video</button>
+                <button onClick={() => go('vision')}>Vision</button>
+                <button onClick={() => go('team')}>Team</button>
+                <button onClick={() => go('partner')}>Partner</button>
+                <button onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                  <span>{theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
+                </button>
+                <button onClick={() => { setMobileOpen(false); setRoute('login'); }} style={{ fontWeight: 700, color: '#7c3aed', display: 'flex', alignItems: 'center', gap: '8px' }}>Sign In to Student Portal →</button>
+              </div>
+            )}
+          </header>
+
+          <main>
+            {/* Hero Section */}
+            <section className="arc2-hero">
+              <div className="arc2-hero-copy">
+                <div className="arc2-kicker">INTELLIGENCE FOR THE LEARNING JOURNEY</div>
+                <h1>Understand more.<br /><em>Learn without limits.</em></h1>
+                <p>ARCANUM transforms the way students experience academic information, bringing language, context, intelligence and progress into one beautifully connected environment.</p>
+                <div className="arc2-hero-actions">
+                  <button className="arc2-black-button" onClick={openEarlyAccess}>Sign Up for Early Access <ArrowRight size={17} /></button>
+                  <button className="arc2-quiet-button" onClick={() => go('platform')}><Play size={14} /> See how it works</button>
+                </div>
+              </div>
+
+              <div className="arc2-hero-stage">
+                <div className="arc2-haze haze-a" /><div className="arc2-haze haze-b" />
+                <div className="arc2-floor" />
+                <div className="arc2-shooting s1" /><div className="arc2-shooting s2" /><div className="arc2-shooting s3" />
+                <div className="arc2-orbit orbit-1" /><div className="arc2-orbit orbit-2" /><div className="arc2-orbit orbit-3" />
+                <div className="arc2-core">
+                  <div className="arc2-core-inner"><span>A</span></div>
+                  <div className="arc2-core-glass" />
+                </div>
+                <div className="arc2-float-card card-a"><span>LIVE</span><strong>Lecture intelligence</strong><small>Listening · 98.4%</small></div>
+                <div className="arc2-float-card card-b"><span>01</span><strong>Context layer</strong><small>Connected to course material</small></div>
+                <div className="arc2-float-card card-c"><span>AI</span><strong>Personalized explanation</strong><small>Ready when you need it</small></div>
+                <div className="arc2-stage-label"><Sparkles size={14} /> ARCANUM CORE <b>01</b></div>
+              </div>
+              <div className="arc2-scroll-cue">SCROLL TO EXPLORE <ChevronDown size={14} /></div>
+            </section>
+
+            {/* Official Partner */}
+            <section className="arc2-partner" id="partner">
+              <div className="arc2-partner-wrap">
+                <span className="arc2-partner-tag">OFFICIAL PARTNER</span>
+                <a href="https://dezai.org" target="_blank" rel="noopener noreferrer" className="arc2-partner-card" title="Visit DEZAI">
+                  <img src="./images/dezai-logo.png" alt="DEZAI" style={{ maxHeight: '64px', borderRadius: '12px', objectFit: 'contain' }} />
+                </a>
+              </div>
+            </section>
+
+            {/* The Problem */}
+            <section className="arc2-intro arc2-white" id="problem">
+              <div className="arc2-section-wrap">
+                <div className="arc2-section-tag">01 / THE PROBLEM</div>
+                <div className="arc2-split-heading">
+                  <h2>Information is everywhere.<br /><em>Understanding is not.</em></h2>
+                  <p>Students move through lectures, terminology, assessments, notes and unfamiliar concepts at the same speed. When language, pace or context becomes a barrier, the gap compounds.</p>
+                </div>
+                <div className="arc2-problem-line">
+                  <div className="arc2-line-number">01</div>
+                  <div><strong>Too much information</strong><span>More content does not automatically create more understanding.</span></div>
+                  <div className="arc2-line-number">02</div>
+                  <div><strong>Too many disconnected tools</strong><span>Questions, notes, translation and revision often live in separate places.</span></div>
+                </div>
+              </div>
+            </section>
+
+            {/* Why ARCANUM */}
+            <section className="arc2-why" id="why">
+              <div className="arc2-section-wrap">
+                <div className="arc2-section-tag">02 / WHY ARCANUM</div>
+                <div className="arc2-why-head">
+                  <h2>A calmer way to<br /><em>make sense of learning.</em></h2>
+                  <p>ARCANUM is not another chatbot placed beside a course. It is designed as the intelligence layer that sits across the learning journey.</p>
+                </div>
+                <div className="arc2-reason-grid">
+                  {reasons.map(([n, t, d]) => (
+                    <article key={n}>
+                      <span>{n}</span>
+                      <h3>{t}</h3>
+                      <p>{d}</p>
+                      <div className="arc2-arrow"><ArrowRight size={15} /></div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Vision */}
+            <section className="arc2-vision" id="vision">
+              <div className="arc2-section-wrap arc2-vision-grid">
+                <div>
+                  <div className="arc2-section-tag">03 / VISION</div>
+                  <h2>From <em>information</em><br />to understanding.</h2>
+                </div>
+                <div className="arc2-vision-copy">
+                  <p>Imagine a learning environment that listens to the lecture, understands the context, adapts explanations to the student and remembers what needs attention next.</p>
+                  <p>That is the direction behind ARCANUM: a more human, intelligent and connected way to learn.</p>
+                  <button className="arc2-outline-button" onClick={openEarlyAccess}>Sign Up for Early Access <ArrowRight size={15} /></button>
+                </div>
+              </div>
+            </section>
+
+            {/* The Platform */}
+            <section className="arc2-platform" id="platform">
+              <div className="arc2-section-wrap">
+                <div className="arc2-section-tag">04 / THE PLATFORM</div>
+                <div className="arc2-platform-head">
+                  <h2>One system.<br /><em>Four intelligent movements.</em></h2>
+                  <p>Every capability works toward the same outcome: helping the student understand what matters, when it matters.</p>
+                </div>
+                <div className="arc2-platform-layout">
+                  <div className="arc2-platform-visual">
+                    <div className="arc2-platform-core"><Network size={28} /><span>ARCANUM</span><small>INTELLIGENCE LAYER</small></div>
+                    <div className="arc2-platform-ring pr1" /><div className="arc2-platform-ring pr2" />
+                    {platform.map((item, i) => (
+                      <div key={item.n} className={`arc2-mini-node pn${i} ${active === i ? 'active' : ''}`}>{item.icon}</div>
+                    ))}
+                  </div>
+                  <div className="arc2-platform-list">
+                    {platform.map((item, i) => (
+                      <button key={item.n} className={`arc2-platform-row ${active === i ? 'active' : ''}`} onMouseEnter={() => setActive(i)}>
+                        <span>{item.n}</span>
+                        <div><h3>{item.title}</h3><p>{item.text}</p></div>
+                        <ArrowRight size={17} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Demo Video Section */}
+            <section className="arc2-demo-video-section" id="demo-video" style={{ padding: '80px 24px', position: 'relative' }}>
+              <div className="arc2-section-wrap" style={{ maxWidth: '1100px', margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                  <div className="arc2-section-tag" style={{ display: 'inline-block' }}>05 / LIVE DEMONSTRATION</div>
+                  <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 700, margin: '12px 0 16px 0', letterSpacing: '-0.02em' }}>
+                    See intelligence in motion.<br />
+                    <em style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic', fontWeight: 500, color: '#7c3aed' }}>
+                      Speech to vernacular understanding.
+                    </em>
+                  </h2>
+                  <p style={{ maxWidth: '640px', margin: '0 auto', fontSize: '16px', color: theme === 'dark' ? '#a1a1aa' : '#52525b', lineHeight: 1.6 }}>
+                    Watch how ARCANUM streams lecture speech with Whisper ASR, extracts context in real time, and adapts complex academic concepts into any learner's vernacular.
+                  </p>
+                </div>
+
+                <div style={{
+                  background: '#09090b',
+                  borderRadius: '24px',
+                  border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'}`,
+                  overflow: 'hidden',
+                  boxShadow: '0 30px 80px -20px rgba(124, 58, 237, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                  position: 'relative'
+                }}>
+                  {/* Chrome Bar */}
+                  <div style={{
+                    height: '42px',
+                    background: '#121217',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 16px',
+                    fontSize: '12px',
+                    color: '#a1a1aa'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }} />
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#eab308' }} />
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e' }} />
+                      <span style={{ marginLeft: '12px', color: '#71717a', fontSize: '11px', fontFamily: 'monospace' }}>
+                        arcanum.ai/live/cs101-lecture
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 600 }}>
+                      <span style={{ display: 'inline-flex', width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+                      <span style={{ color: '#22c55e' }}>98.4% ASR ACCURACY</span>
+                    </div>
+                  </div>
+
+                  {/* Video Area */}
+                  <div style={{ position: 'relative', width: '100%', background: '#000000', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <video
+                      controls
+                      playsInline
+                      poster="./images/dezai-logo.png"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    >
+                      <source src="./images/demo.mp4" type="video/mp4" />
+                      <source src="./demo.mp4" type="video/mp4" />
+                      <source src="./images/video.mp4" type="video/mp4" />
+                      <source src="./video.mp4" type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+
+                  {/* Highlights Bar */}
+                  <div style={{
+                    padding: '16px 24px',
+                    background: '#121217',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f4f4f5', fontSize: '13px', fontWeight: 600 }}>
+                      <Sparkles size={16} color="#b9a8ff" />
+                      <span>Continuous Dual-Tier Context Engine</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#a1a1aa' }}>
+                      <span>⚡ Whisper Streaming VAD</span>
+                      <span>·</span>
+                      <span>🇮🇳 Hindi &amp; Gujarati Translation</span>
+                      <span>·</span>
+                      <span>📚 Auto-Note Extraction</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section className="arc2-team" id="team">
+              <div className="arc2-section-wrap arc2-team-wrap">
+                <div className="arc2-team-header-center">
+                  <h2 className="arc2-team-headline">Meet our team!</h2>
+                </div>
+                <div className="arc2-team-grid">
+                  {teamMembers.map((m) => (
+                    <article
+                      key={m.name}
+                      className="arc2-team-card arc2-team-card-interactive"
+                      onClick={() => setSelectedMember(m)}
+                      role="button"
+                      tabIndex={0}
+                      title={`Click to view ${m.name}'s profile`}
+                    >
+                      <div className="arc2-team-media">
+                        <img src={m.photo} alt={m.name} className="arc2-team-img" loading="lazy" />
+                        <span className="arc2-team-badge">{m.domain}</span>
+                      </div>
+                      <div className="arc2-team-body">
+                        <div className="arc2-team-header">
+                          <h3>{m.name}</h3>
+                          <div className="arc2-team-specialty">{m.role}</div>
+                        </div>
+                        <p className="arc2-team-bio">{m.focus}</p>
+                        <div className="arc2-team-skills">
+                          {m.tags.map(s => <span key={s} className="arc2-team-chip">{s}</span>)}
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* CTA */}
+            <section className="arc2-cta">
+              <div className="arc2-section-wrap">
+                <div className="arc2-section-tag">07 / BEGIN</div>
+                <h2>Make learning<br /><em>feel clearer.</em></h2>
+                <p>Step into the ARCANUM environment and see what an intelligent learning layer can feel like.</p>
+                <button className="arc2-white-button" onClick={openEarlyAccess}>Sign Up for Early Access <ArrowRight size={17} /></button>
+              </div>
+            </section>
+          </main>
+
+          {/* Footer */}
+          <footer className="arc2-footer">
+            <div className="arc2-footer-container">
+              <div className="arc2-footer-grid" style={{ gridTemplateColumns: '2fr 1fr 1.2fr' }}>
+                <div className="arc2-footer-col arc2-footer-brand-col">
+                  <ArcanumLogo variant="full" size={30} interactive />
+                  <p className="arc2-footer-desc">
+                    The continuous intelligence layer for higher education. Real-time vernacular comprehension, adaptive tutoring, and zero-distraction focus for every student.
+                  </p>
+                  <div className="arc2-footer-team-mention">
+                    Crafted by <strong>Hetvi Sheth, Sneha Patel, Parisha, Priya Bhatt &amp; Isha Rajput</strong>
+                  </div>
+                </div>
+                <div className="arc2-footer-col">
+                  <h4>Platform</h4>
+                  <ul>
+                    <li><button onClick={() => go('problem')}>The Problem</button></li>
+                    <li><button onClick={() => go('why')}>Why ARCANUM</button></li>
+                    <li><button onClick={() => go('platform')}>Four Movements</button></li>
+                    <li><button onClick={() => go('vision')}>Vision</button></li>
+                    <li><button onClick={() => go('team')}>Engineering Team</button></li>
+                  </ul>
+                </div>
+                <div className="arc2-footer-col">
+                  <h4>Trust &amp; Legal</h4>
+                  <ul>
+                    <li><span className="arc2-footer-compliance-tag">FERPA &amp; COPPA Aligned</span></li>
+                    <li><span className="arc2-footer-compliance-tag">Zero-Retention Audio</span></li>
+                    <li><span className="arc2-footer-compliance-tag">SOC2 Ready</span></li>
+                  </ul>
+                </div>
+              </div>
+              <div className="arc2-footer-bottom">
+                <span>© 2026 ARCANUM AI. All rights reserved.</span>
+              </div>
+            </div>
+          </footer>
+
+          {/* Member Profile Modal */}
+          {selectedMember && (
+            <div className="arc2-member-modal-overlay" onClick={() => setSelectedMember(null)}>
+              <div className="arc2-member-modal-card" onClick={e => e.stopPropagation()}>
+                <button className="arc2-member-modal-close" onClick={() => setSelectedMember(null)}><X size={18} /></button>
+                <div className="arc2-member-modal-avatar">
+                  <img src={selectedMember.photo} alt={selectedMember.name} />
+                </div>
+                <h2 className="arc2-member-modal-name">{selectedMember.name}</h2>
+                <div className="arc2-member-modal-role">{selectedMember.role}</div>
+                <div className="arc2-member-modal-bio">
+                  {selectedMember.bioParagraphs.map((p, i) => <p key={i}>{p}</p>)}
+                </div>
+                <div className="arc2-member-modal-tags">
+                  {selectedMember.tags.map((t, i) => (
+                    <span key={t} className="arc2-member-modal-pill">
+                      <span className="arc2-member-modal-num">{String(i + 1).padStart(2, '0')}</span>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Early Access Modal */}
+          {earlyAccessOpen && (
+            <div className="arc2-member-modal-overlay" onClick={() => { setEarlyAccessOpen(false); setEarlySubmitted(false); }}>
+              <div className="arc2-member-modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', padding: '36px 32px' }}>
+                <button className="arc2-member-modal-close" onClick={() => { setEarlyAccessOpen(false); setEarlySubmitted(false); }}><X size={18} /></button>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                  <div style={{ display: 'inline-flex', padding: '12px', borderRadius: '16px', background: theme === 'dark' ? 'rgba(124, 58, 237, 0.15)' : 'rgba(124, 58, 237, 0.08)', marginBottom: '16px' }}>
+                    <Sparkles size={28} color="#7c3aed" />
+                  </div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0' }}>
+                    {earlySubmitted ? "You're on the list!" : "Sign Up for Early Access"}
+                  </h2>
+                  <p style={{ color: theme === 'dark' ? '#a1a1aa' : '#52525b', fontSize: '14px', lineHeight: 1.5, margin: 0 }}>
+                    {earlySubmitted
+                      ? "Thank you for joining! We are rolling out private access batches weekly. Check your inbox soon."
+                      : "Be the first to experience real-time lecture intelligence, vernacular comprehension, and adaptive tutoring."}
+                  </p>
+                </div>
+
+                {earlySubmitted ? (
+                  <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '9999px', background: 'rgba(34, 197, 94, 0.12)', color: '#22c55e', fontWeight: 600, fontSize: '14px', marginBottom: '20px' }}>
+                      <CheckCircle2 size={16} /> Priority Invitation Confirmed
+                    </div>
+                    <button
+                      onClick={() => { setEarlyAccessOpen(false); setEarlySubmitted(false); }}
+                      className="arc2-black-button"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                    >
+                      Back to Overview
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleEarlyAccessSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px', color: theme === 'dark' ? '#a1a1aa' : '#71717a' }}>
+                        I am a:
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                        {[
+                          { id: 'student', label: 'Student' },
+                          { id: 'educator', label: 'Educator' },
+                          { id: 'institution', label: 'Institution' },
+                        ].map((r) => (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => setEarlyRole(r.id)}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '10px',
+                              border: earlyRole === r.id
+                                ? '2px solid #7c3aed'
+                                : `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)'}`,
+                              background: earlyRole === r.id
+                                ? (theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : 'rgba(124, 58, 237, 0.08)')
+                                : (theme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)'),
+                              color: earlyRole === r.id ? '#7c3aed' : 'inherit',
+                              fontWeight: earlyRole === r.id ? 700 : 500,
+                              fontSize: '13px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {r.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px', color: theme === 'dark' ? '#a1a1aa' : '#71717a' }}>
+                        Email Address:
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', display: 'flex', color: '#9ca3af' }}>
+                          <Mail size={16} />
+                        </span>
+                        <input
+                          type="email"
+                          required
+                          value={earlyEmail}
+                          onChange={(e) => setEarlyEmail(e.target.value)}
+                          placeholder="you@university.edu"
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px 12px 40px',
+                            borderRadius: '12px',
+                            border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.12)'}`,
+                            background: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
+                            color: 'inherit',
+                            fontSize: '14px',
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="arc2-black-button"
+                      style={{
+                        width: '100%',
+                        justifyContent: 'center',
+                        marginTop: '8px',
+                        padding: '12px',
+                        background: '#7c3aed',
+                        color: '#ffffff',
+                        borderColor: '#7c3aed'
+                      }}
+                    >
+                      Request Early Access <ArrowRight size={16} />
+                    </button>
+                    <span style={{ fontSize: '11px', textAlign: 'center', color: '#9ca3af' }}>
+                      🔒 No spam. Zero audio retention. FERPA &amp; COPPA compliant.
+                    </span>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // --- Auth Page Component (Student Portal) ---
+    const AuthPage = () => {
+      const { setRoute, theme } = useApp();
+      const [tab, setTab] = useState('signin');
+      const [role, setRole] = useState('student');
+      const [email, setEmail] = useState('student@university.edu');
+      const [password, setPassword] = useState('••••••••');
+      const [fullName, setFullName] = useState('');
+      const [showPassword, setShowPassword] = useState(false);
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [loggedInUser, setLoggedInUser] = useState('');
+
+      const fillDemo = (type) => {
+        setRole(type);
+        if (type === 'student') {
+          setEmail('student@arcanum.ai');
+          setPassword('Demo@123');
+          setFullName('Aarav Patel');
+        } else {
+          setEmail('faculty@arcanum.ai');
+          setPassword('Faculty@2026');
+          setFullName('Dr. Priya Sharma');
+        }
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setIsLoggedIn(true);
+        setLoggedInUser(email || 'User');
+      };
+
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0a0a0c',
+          color: '#f4f4f5',
+          fontFamily: "'DM Sans', Inter, system-ui, sans-serif",
+          padding: '24px 16px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle Ambient Glow */}
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            background: 'radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.15), transparent 45%), radial-gradient(circle at 80% 80%, rgba(244, 114, 182, 0.08), transparent 45%)',
+            zIndex: 0
+          }} />
+
+          {/* Top Bar Navigation */}
+          <header style={{
+            position: 'absolute',
+            top: '20px',
+            left: '24px',
+            right: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 10
+          }}>
+            <button
+              onClick={() => setRoute('landing')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.14)',
+                color: '#f4f4f5',
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <ArrowLeft size={15} /> Back to Overview
+            </button>
+            <div style={{ fontSize: '13px', color: '#a1a1aa' }}>
+              Need help? <a href="mailto:support@arcanum.ai" style={{ color: '#b9a8ff', textDecoration: 'none' }}>support@arcanum.ai</a>
+            </div>
+          </header>
+
+          {/* Split Auth Card */}
+          <div style={{
+            width: '100%',
+            maxWidth: '1020px',
+            background: '#ffffff',
+            borderRadius: '28px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.22fr',
+            overflow: 'hidden',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+            position: 'relative',
+            zIndex: 2,
+            margin: '40px 0'
+          }}>
+            {/* Left Column: Dark Side */}
+            <div style={{
+              background: '#0d0d10',
+              color: '#ffffff',
+              padding: '48px 40px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
+                  <ArcanumLogo variant="full" size={32} theme="dark" interactive />
+                </div>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(124, 58, 237, 0.16)',
+                  border: '1px solid rgba(185, 168, 255, 0.25)',
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  color: '#b9a8ff',
+                  textTransform: 'uppercase',
+                  marginBottom: '28px'
+                }}>
+                  <GraduationCap size={14} /> Student &amp; Academic Portal
+                </div>
+                <h1 style={{
+                  fontSize: '32px',
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  letterSpacing: '-0.02em',
+                  margin: '0 0 16px 0',
+                  fontFamily: "'DM Sans', sans-serif"
+                }}>
+                  Understand more.<br />
+                  <em style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontStyle: 'italic',
+                    fontWeight: 500,
+                    background: 'linear-gradient(135deg, #f5d0c5 0%, #b9a8ff 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}>
+                    Learn without limits.
+                  </em>
+                </h1>
+                <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#a1a1aa', margin: '0 0 36px 0' }}>
+                  Live translations, vernacular notes and an AI tutor built around the way students learn best.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {[
+                    'Real-Time Multilingual Lecture Sync',
+                    'Contextual AI Tutor & 3D Flashcards',
+                    '12+ Indian Regional Dialects & Study Notes',
+                    'Zero-Retention Audio Privacy Shield'
+                  ].map((feat) => (
+                    <div key={feat} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: '#e4e4e7' }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        background: 'rgba(124, 58, 237, 0.2)',
+                        border: '1px solid rgba(185, 168, 255, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <CheckCircle2 size={13} color="#b9a8ff" />
+                      </div>
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{
+                marginTop: '40px',
+                paddingTop: '20px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                fontSize: '11px',
+                color: '#71717a',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}>
+                <span>FERPA &amp; COPPA Aligned</span>
+                <span>v2.4 Production</span>
+              </div>
+            </div>
+
+            {/* Right Column: White Login Card */}
+            <div style={{
+              padding: '48px 44px',
+              color: '#0a0a0b',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              background: '#ffffff'
+            }}>
+              <div>
+                <div style={{ marginBottom: '24px' }}>
+                  <h2 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 6px 0', letterSpacing: '-0.02em', color: '#09090b' }}>
+                    {tab === 'signin' ? 'Student Portal Login' : 'Create Student Account'}
+                  </h2>
+                  <p style={{ fontSize: '14px', color: '#71717a', margin: 0 }}>
+                    {tab === 'signin'
+                      ? 'Welcome back! Sign in to continue your vernacular studies & notes.'
+                      : 'Start understanding lectures in real time with continuous AI assistance.'}
+                  </p>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  background: '#f4f4f5',
+                  padding: '4px',
+                  borderRadius: '12px',
+                  marginBottom: '20px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setTab('signin')}
+                    style={{
+                      border: 'none',
+                      borderRadius: '9px',
+                      padding: '8px 16px',
+                      fontSize: '13px',
+                      fontWeight: tab === 'signin' ? 700 : 500,
+                      background: tab === 'signin' ? '#ffffff' : 'transparent',
+                      color: tab === 'signin' ? '#09090b' : '#71717a',
+                      boxShadow: tab === 'signin' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab('signup')}
+                    style={{
+                      border: 'none',
+                      borderRadius: '9px',
+                      padding: '8px 16px',
+                      fontSize: '13px',
+                      fontWeight: tab === 'signup' ? 700 : 500,
+                      background: tab === 'signup' ? '#ffffff' : 'transparent',
+                      color: tab === 'signup' ? '#09090b' : '#71717a',
+                      boxShadow: tab === 'signup' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Sparkles size={13} color="#7c3aed" /> Create Account (Sign Up)
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => fillDemo('student')}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    padding: '11px',
+                    borderRadius: '12px',
+                    border: '1px solid #e4e4e7',
+                    background: '#ffffff',
+                    color: '#18181b',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    marginBottom: '20px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.17 0 9.99 0 12s.45 3.83 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                  Continue with Google
+                </button>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  margin: '18px 0',
+                  color: '#a1a1aa',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase'
+                }}>
+                  <div style={{ flex: 1, height: '1px', background: '#f4f4f5' }} />
+                  <span style={{ padding: '0 12px' }}>or email sign in</span>
+                  <div style={{ flex: 1, height: '1px', background: '#f4f4f5' }} />
+                </div>
+
+                {isLoggedIn ? (
+                  <div style={{
+                    background: 'rgba(34, 197, 94, 0.08)',
+                    border: '1px solid rgba(34, 197, 94, 0.25)',
+                    padding: '24px',
+                    borderRadius: '16px',
+                    textAlign: 'center',
+                    margin: '20px 0'
+                  }}>
+                    <CheckCircle2 size={36} color="#22c55e" style={{ margin: '0 auto 12px auto' }} />
+                    <h3 style={{ margin: '0 0 6px 0', color: '#15803d', fontSize: '18px' }}>
+                      Authenticated Successfully!
+                    </h3>
+                    <p style={{ margin: '0 0 16px 0', color: '#166534', fontSize: '13px' }}>
+                      Welcome back, <strong>{loggedInUser}</strong>. Your session is now synchronized.
+                    </p>
+                    <button
+                      onClick={() => setRoute('landing')}
+                      className="arc2-black-button"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                    >
+                      Return to Lecture Hall
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {tab === 'signup' && (
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#71717a', marginBottom: '6px' }}>
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          placeholder="Aarav Patel"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #e4e4e7',
+                            fontSize: '14px',
+                            color: '#09090b',
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#71717a', marginBottom: '6px' }}>
+                        Email Address
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', color: '#9ca3af' }}>
+                          <Mail size={16} />
+                        </span>
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="student@university.edu"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px 11px 38px',
+                            borderRadius: '10px',
+                            border: '1px solid #e4e4e7',
+                            fontSize: '14px',
+                            color: '#09090b',
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#71717a' }}>
+                          Password
+                        </label>
+                        <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to your email."); }} style={{ fontSize: '12px', color: '#7c3aed', textDecoration: 'none', fontWeight: 600 }}>
+                          Forgot password?
+                        </a>
+                      </div>
+                      <div style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', color: '#9ca3af' }}>
+                          <Lock size={16} />
+                        </span>
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          style={{
+                            width: '100%',
+                            padding: '11px 38px 11px 38px',
+                            borderRadius: '10px',
+                            border: '1px solid #e4e4e7',
+                            fontSize: '14px',
+                            color: '#09090b',
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(v => !v)}
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#9ca3af',
+                            padding: 0
+                          }}
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '13px',
+                        borderRadius: '12px',
+                        background: '#09090b',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        marginTop: '4px'
+                      }}
+                    >
+                      {tab === 'signin' ? 'Sign In to Student Portal' : 'Create Student Account'} <ArrowRight size={15} />
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* Quick Demo Account Auto-Fill */}
+              <div style={{
+                marginTop: '22px',
+                background: '#f9f9fb',
+                border: '1px solid #ebecef',
+                borderRadius: '12px',
+                padding: '12px 14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Demo Accounts
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                    One-click auto-fill
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => fillDemo('student')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #e4e4e7',
+                      background: '#ffffff',
+                      color: '#18181b',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <GraduationCap size={14} color="#7c3aed" /> Student Demo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillDemo('faculty')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #e4e4e7',
+                      background: '#ffffff',
+                      color: '#18181b',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Building2 size={14} color="#059669" /> Faculty Demo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // --- App Root Router ---
+    const App = () => {
+      const { route } = useApp();
+      if (route === 'login' || route === 'signup' || route === 'auth') {
+        return <AuthPage />;
+      }
+      return <LandingPage />;
+    };
+
+    // Render App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(
+      <AppProvider>
+        <App />
+      </AppProvider>
+    );
+  </script>
+</body>
+</html>
+
